@@ -9,6 +9,24 @@ load_dotenv()
 client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
 
 def send_news_summary(keyword: str, summary: str, articles: list, user_name: str = ""):
+    # 검색된 뉴스가 없을 때는 요약 내용과 무관하게 고정 메시지를 전송
+    if not articles:
+        try:
+            client.chat_postMessage(
+                channel=os.getenv("SLACK_CHANNEL_ID"),
+                text="검색된 뉴스가 없습니다.",
+                blocks=[
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": "검색된 뉴스가 없습니다."},
+                    }
+                ],
+            )
+            print("[완료] 검색된 뉴스 없음 - 슬랙 전송 성공")
+        except SlackApiError as e:
+            print(f"[오류] 슬랙 전송 실패: {e.response['error']}")
+        return
+
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # 원문 링크 버튼 (최대 3개)
